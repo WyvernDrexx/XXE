@@ -2,13 +2,11 @@
 
 > **XXE Injection** is a web application security vulnerability which allows malicious attackers to interfere with XML parsing of the web application, typically resulting in the access to the contents of arbitrary files on the system, perform a DOS attack, enumerate internal systems and much more.
 
-XEE Injection arises because of the potential dangerous features that XML parser provides. The features though not needed, might be enabled in the web application, which results in the injection.
+XEE Injection arises because of the potential dangerous features that XML parser provides. The features though not needed, might be enabled in the web application, which results in the injection to become successful.
 
-## XML: Introduction
+## XML Introduction
 
-XML or _Extensible Markup Language_ is a type of markup language that provides a set of rules for encoding a document that can be read by both humans and machines. The main aspect of XML is to provide ability for inter-communication between machines in a simple manner.
-
-XML documents are simple text files that follow a simple rule ie to define that in a `tag` format.
+XML or _Extensible Markup Language_ is a type of markup language that provides a set of rules for encoding a document that can be read by both humans and machines. The main aspect of XML is to provide ability for inter-communication between machines.
 
 For Example,
 
@@ -61,7 +59,7 @@ In the above example,
 - `!ELEMENT lastname` defines that `lastname` should be of `#PCDATA` type.
 - `!ELEMENT age` defines that `age` should be of `#PCDATA` type.
 
-Following the rules we then generate our data,
+Following the above DTD rules we have,
 
 ```xml
 <person>
@@ -76,6 +74,8 @@ Following the rules we then generate our data,
     </age>
  </person>
 ```
+
+### External DTD
 
 >DTD can be referenced through external files using SYSTEM keyword.
 
@@ -97,6 +97,7 @@ Example,
  </person>
 ```
 
+The `SYSTEM` keyword is responsible for external references.
 Now `person.dtd` will have,
 
 ```xml
