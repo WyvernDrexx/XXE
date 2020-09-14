@@ -24,7 +24,6 @@ For Example,
 
 The above XML file defines a simple set of data enclosed in opening and closing tags.
 
-
 ### DTD
 
 > Document Type Definition also know as DTD is a set of declarations that define the structure of a XML document.
@@ -78,7 +77,7 @@ Following the above DTD rules we have,
 
 ### External DTD
 
->DTD can be referenced through external files using SYSTEM keyword.
+> DTD can be referenced through external files using SYSTEM keyword.
 
 Example,
 
@@ -135,7 +134,7 @@ There are numerous XXE attacks but we will mainly focus few of them.
 To be able to read arbitrary files we need to do two things,
 
 1. Insert or modify an external entity that will reference our arbitrary file.
-2. Use the defined *external* entity in the XML that gets returned with the application's response along with the contents of the arbitrary file.
+2. Use the defined _external_ entity in the XML that gets returned with the application's response along with the contents of the arbitrary file.
 
 Let's say you went to an e-commerce website and you found out that their search functionality uses **XML** in their POST data to send search term to the backend.
 
@@ -177,6 +176,13 @@ Now our full XEE payload will become,
 
 Voila! The response we get is,
 
-`No results for "MY_COMPUTER."`
+```post
+HTTP/1.1 400 Bad Request
+Content-Type: application/json; charset=utf-8
+Connection: close
+Content-Length: 1187
+
+No results for "MY_COMPUTER."
+```
 
 Enclosed between the quotes is our contents of `/etc/hostname`. Just replace `/etc/hostname` with any file name to retrieve it's contents.
