@@ -229,7 +229,7 @@ The vulnerability is complex as compared to other XXE vulnerabilities.
 
 ### Finding Blind XXE Injection using Out-Of-Band techniques
 
->Out-of-band technique involves the attacker to setup a remote server, that they control and listen for any **intentional network requests** which confirms that the exploit was successful.
+> Out-of-band technique involves the attacker to setup a remote server, that they control and listen for any **intentional network requests** which confirms that the exploit was successful.
 
 Finding **Blind XXE Injection** is similar to **SSRF** using **XXE injection**.
 
@@ -242,7 +242,7 @@ In the above payload we create a XML external entity whose contents are gathered
 
 If the payload was successful we should see a HTTP GET request sent by the webserver.
 
->In some cases using the regular entities are blocked by the parser in that situation, we could use XML parameter entities.
+> In some cases using the regular entities are blocked by the parser in that situation, we could use XML parameter entities.
 
 XML parameter entities are declared using the following syntax,
 
@@ -271,7 +271,7 @@ It is possible to exfiltrate sensitive data through Blind XXE Injection by using
 
 We need to do two things to exfiltrate data using blind XXE injection,
 
-1. First, we need to host a malicious DTD file that will take the *sensitive* file's contents and then, send the contents of the file in a HTTP GET request to our remote server.
+1. First, we need to host a malicious DTD file that will take the _sensitive_ file's contents and then, send the contents of the file in a HTTP GET request to our remote server.
 2. Second, we need to inject an external XML parameter entity into the vulnerable webserver that will refer to our malicious DTD stored in our site and use it.
 
 The malicious DTD in our site will be,
@@ -286,7 +286,7 @@ The malicious DTD in our site will be,
 The DTD will carry out these tasks,
 
 1. Creates a XML **parameter** entity with the name of `file` that contains the contents of file `/etc/passwd`.
-2. Creates another XML parameter entity `eval`, that contains *dynamic declaration* of another XML parameter entity called `exfiltrate`. Now, the `exfiltrate` will be evaluated by making a HTTP request to `https://target.site.com/?file=%file;` where `%file;` will be replaced with the contents of `file`, i.e. the contents of `/etc/passwd`.
+2. Creates another XML parameter entity `eval`, that contains _dynamic declaration_ of another XML parameter entity called `exfiltrate`. Now, the `exfiltrate` will be evaluated by making a HTTP request to `https://target.site.com/?file=%file;` where `%file;` will be replaced with the contents of `file`, i.e. the contents of `/etc/passwd`.
 3. `eval` parameter entity is used, which causes dynamic declaration of `exfiltrate`.
 4. At last, `exfiltrate` is used that gets **evaluated** by sending a HTTP request to the server `https://target.site.com/?file=%file;` with the contents of `file` in the HTTP GET request parameter.
 
@@ -300,7 +300,7 @@ The above external entity will get our malicious DTD available at `https://targe
 
 If all ran successfully we should see a HTTP GET request with the contents of `/etc/passwd` in the request parameter.
 
->**Note:** The reason for using external DTD **stored in our server** is because, as per XML specification, defining an external parameter entity inside another parameter entity is not allowed in internal DTD but allowed in external DTD. Although some parsers might allow but, most of them don't.
+> **Note:** The reason for using external DTD **stored in our server** is because, as per XML specification, defining an external parameter entity inside another parameter entity is not allowed in internal DTD but allowed in external DTD. Although some parsers might allow but, most of them don't.
 
 ### Exfiltrate data using Blind XXE Injection through error messages
 
@@ -310,7 +310,7 @@ For example, if you try to refer a XML external entity to some non-existent file
 
 To be able to use this technique we need two things,
 
-1. First, we need to host an external DTD that will *throw an XML error intentionally* and the error message **must include** the data that we want to exfiltrate.
+1. First, we need to host an external DTD that will _throw an XML error intentionally_ and the error message **must include** the data that we want to exfiltrate.
 2. Second, an external entity must be sent to the vulnerable webserver which will load the external DTD file from our server and then, use it.
 
 The malicious XML DTD will look something like this,
@@ -325,9 +325,9 @@ The malicious XML DTD will look something like this,
 The DTD will,
 
 1. Create an external XML entity `file`, that will contain the contents of file `/etc/hostname`.
-2. Create another external entity `eval`, that will declare a *dynamic external entity* `error`.
+2. Create another external entity `eval`, that will declare a _dynamic external entity_ `error`.
 3. Next, `file` is evaluated with contents from file `/etc/hostname`.
-4. When `eval` gets evaluated, a new *XML external entity* `error` gets declared with reference to the file `/bla/bla/%file;`. Here, `%file;` get replaced with contents of `file` entity. If file `/etc/hostname` contains `WyvernDrexx` then, `file` entity will have `WyvernDrexx` so, the `error` entity will refer to the file: `/bla/bla/WyvernDrexx`.
+4. When `eval` gets evaluated, a new _XML external entity_ `error` gets declared with reference to the file `/bla/bla/%file;`. Here, `%file;` get replaced with contents of `file` entity. If file `/etc/hostname` contains `WyvernDrexx` then, `file` entity will have `WyvernDrexx` so, the `error` entity will refer to the file: `/bla/bla/WyvernDrexx`.
 5. At last, since file `/bla/bla/WyvernDrexx` doesn't exist so the **XML parser** fails to evaluate `error` and throws an error similar to, `Error: File '/bla/bla/WyvernDrexx;' does not exist.`. Now, from the error message we can extract the hostname of the server.
 
 The DTD sent to the server that will trigger the malicious DTD will be,
@@ -342,14 +342,14 @@ We can exfiltrate any data using this technique as long as the error messages ar
 
 Till now the way we exploited blind XXE Injection was using **Out-Of-Band** techniques where, a malicious DTD was loaded from our site and used.
 
->**Note:** The reason for using external DTD **stored in our server** is because, as per XML specification, defining an external parameter entity inside another parameter entity is not allowed in internal DTD but allowed in external DTD. Although some parsers might allow but, most of them don't.
+> **Note:** The reason for using external DTD **stored in our server** is because, as per XML specification, defining an external parameter entity inside another parameter entity is not allowed in internal DTD but allowed in external DTD. Although some parsers might allow but, most of them don't.
 
-What if, **Out-of-Band** connections are blocked? It means we cannot load external DTD from our own server and exploit it. In that case, we can trigger an error containing sensitive data by *modifying an existing entity and then, triggering an error.*
+What if, **Out-of-Band** connections are blocked? It means we cannot load external DTD from our own server and exploit it. In that case, we can trigger an error containing sensitive data by _modifying an existing entity and then, triggering an error._
 
->Essentially, the attack involves invoking a DTD file that happens to exist on the local filesystem and repurposing it to redefine an existing entity in a way that triggers a parsing error containing sensitive data. This technique was pioneered by Arseniy Sharoglazov, and ranked #7 in the top 10 web hacking techniques of 2018.\
-*Source: PortSwigger Web Academy*
+> Essentially, the attack involves invoking a DTD file that happens to exist on the local filesystem and repurposing it to redefine an existing entity in a way that triggers a parsing error containing sensitive data. This technique was pioneered by Arseniy Sharoglazov, and ranked #7 in the top 10 web hacking techniques of 2018.\
+> _Source: PortSwigger Web Academy_
 
-In order for this technique to work we need a DTD file that is available on the filesystem. We can search Google for common DTD files  and get a list of it.
+In order for this technique to work we need a DTD file that is available on the filesystem. We can search Google for common DTD files and get a list of it.
 
 Let's say theres a DTD file `/usr/share/yelp/dtd/dockbookx.dtd` in the filesystem.
 Now, our payload would be,
@@ -374,3 +374,34 @@ The above payload looks similar to our previous payload with some major differen
 3. We repurpose `ISOamso` to create a dynamic declaration of external entity that creates another external entity.
 4. When `ISOamso` is evaluated we get an error which is exactly same as our previous exploit.
 5. At last, on our DTD we use the `external_dtd` that will evaluate it's entity including our repurposed entity `ISOamso` which in turn, triggers the error.
+
+## XXE Injection with XInclude
+
+Not all applications would send XML data from client to server. Many of them send data from client to server then, embed it into an XML document on the server and parses it.
+
+For example, a web application would submit a form through POST data and later the server extracts the data and embeds in a XML document. In that case, we cannot use our techniques discussed above because we don't have access to full XML Document.
+
+XML provides a feature that allows us to include a **sub-document** inside a XML Document using **XInclude**.
+To include a sub-document using **XInclude** we use
+
+```xml
+<?xml version="1.0"?>
+<article>
+    <title>Hello</title>
+    <para>World</para>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="helloworld.xml"></xi:include>
+</article>
+```
+
+1. `xi:include` specifies that the included content will replace this tag.
+2. `href` is used to refer to the **XML Sub Document** that will replace the `xi:include`.
+
+>**Note:** The XInclude expects the sub-document to be a valid XML document so in-order to include a *non-XML* document we need to provide an additional attribute `parse=text` along with `href`.
+
+Hence now, our payload becomes,
+
+```xml
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" parse="text" href="file:///etc/passwd"></xi:include>
+```
+
+Replace any value on a body with a payload for this to work. Make sure the value you are replacing will be reflected in the response.
