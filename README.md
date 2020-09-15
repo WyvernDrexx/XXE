@@ -344,12 +344,12 @@ Till now the way we exploited blind XXE Injection was using **Out-Of-Band** tech
 
 >**Note:** The reason for using external DTD **stored in our server** is because, as per XML specification, defining an external parameter entity inside another parameter entity is not allowed in internal DTD but allowed in external DTD. Although some parsers might allow but, most of them don't.
 
-What if, **Out-of-Band** connections are blocked? It means we cannot load external DTD from our own server and exploit it. In that case we can trigger an error containing sensitive data by *modifying an existing entity and then, triggering an error.*
+What if, **Out-of-Band** connections are blocked? It means we cannot load external DTD from our own server and exploit it. In that case, we can trigger an error containing sensitive data by *modifying an existing entity and then, triggering an error.*
 
 >Essentially, the attack involves invoking a DTD file that happens to exist on the local filesystem and repurposing it to redefine an existing entity in a way that triggers a parsing error containing sensitive data. This technique was pioneered by Arseniy Sharoglazov, and ranked #7 in the top 10 web hacking techniques of 2018.\
 *Source: PortSwigger Web Academy*
 
-In order for this technique to work we need a DTD file that is on the filesystem. We can search Google for common DTD files in a system and get a list of it.
+In order for this technique to work we need a DTD file that is available on the filesystem. We can search Google for common DTD files  and get a list of it.
 
 Let's say theres a DTD file `/usr/share/yelp/dtd/dockbookx.dtd` in the filesystem.
 Now, our payload would be,
@@ -367,7 +367,7 @@ Now, our payload would be,
 ]>
 ```
 
-The above payload looks similar to our previous payload with some major difference,
+The above payload looks similar to our previous payload with some major differences,
 
 1. We first load `external_dtd` which gets DTD from the file on the system, `/usr/share/yelp/dtd/dockbookx.dtd`.
 2. After loading the external entity `external_dtd`, we then **repurpose** an **existing** entity. `ISOamso` is an entity defined on the DTD `/usr/share/yelp/dtd/dockbookx.dtd`.
