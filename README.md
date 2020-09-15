@@ -377,9 +377,9 @@ The above payload looks similar to our previous payload with some major differen
 
 ## XXE Injection with XInclude
 
-Not all applications would send XML data from client to server. Many of them send data from client to server then, embed it into an XML document on the server and parses it.
+Not all applications would send XML document from client to server. Many of them send data in text form, from client to server then, embed it into an XML document and parse it.
 
-For example, a web application would submit a form through POST data and later the server extracts the data and embeds in a XML document. In that case, we cannot use our techniques discussed above because we don't have access to full XML Document.
+For example, a web application would submit a form through POST data and later, extract the form data and embed them in a XML document. In that case, we cannot use our techniques discussed above because, we don't have access to full XML Document.
 
 XML provides a feature that allows us to include a **sub-document** inside a XML Document using **XInclude**.
 To include a sub-document using **XInclude** we use
@@ -396,7 +396,7 @@ To include a sub-document using **XInclude** we use
 1. `xi:include` specifies that the included content will replace this tag.
 2. `href` is used to refer to the **XML Sub Document** that will replace the `xi:include`.
 
->**Note:** The XInclude expects the sub-document to be a valid XML document so in-order to include a *non-XML* document we need to provide an additional attribute `parse=text` along with `href`.
+>**Note:** The **XInclude** expects the sub-document to be a valid XML document so in-order to include a *non-XML document* we need to provide an additional attribute `parse=text` along with `href`.
 
 Hence now, our payload becomes,
 
@@ -404,4 +404,4 @@ Hence now, our payload becomes,
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" parse="text" href="file:///etc/passwd"></xi:include>
 ```
 
-Replace any value on a body with a payload for this to work. Make sure the value you are replacing will be reflected in the response.
+Replace any value on a body with the payload. Make sure the value you are replacing will be reflected in the response to that request.
