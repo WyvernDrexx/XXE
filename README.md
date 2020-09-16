@@ -18,7 +18,7 @@
     - [Using XML Parameter Entity for exploiting using Out-Of-Band](#using-xml-parameter-entity-for-exploiting-using-out-of-band)
     - [Exfiltrate sensitive data using Blind XXE Injection](#exfiltrate-sensitive-data-using-blind-xxe-injection)
     - [Exfiltrate data using Blind XXE Injection through error messages](#exfiltrate-data-using-blind-xxe-injection-through-error-messages)
-    - [Exfiltrate sensitive data by modifying an existing entity of external DTD](#exfiltrate-sensitive-data-by-modifying-an-existing-entity-of-external-dtd)
+  - [Exfiltrate sensitive data by modifying an existing entity of external DTD](#exfiltrate-sensitive-data-by-modifying-an-existing-entity-of-external-dtd)
   - [XXE Injection with XInclude](#xxe-injection-with-xinclude)
   - [XXE Injection using SVG File Upload](#xxe-injection-using-svg-file-upload)
 
@@ -362,7 +362,7 @@ The DTD sent to the server that will trigger the malicious DTD will be,
 
 We can exfiltrate any data using this technique as long as the error messages are shown.
 
-### Exfiltrate sensitive data by modifying an existing entity of external DTD
+## Exfiltrate sensitive data by modifying an existing entity of external DTD
 
 Till now the way we exploited blind XXE Injection was using **Out-Of-Band** techniques where, a malicious DTD was loaded from our site and used.
 
