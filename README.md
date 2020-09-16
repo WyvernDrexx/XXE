@@ -396,7 +396,7 @@ To include a sub-document using **XInclude** we use
 1. `xi:include` specifies that the included content will replace this tag.
 2. `href` is used to refer to the **XML Sub Document** that will replace the `xi:include`.
 
->**Note:** The **XInclude** expects the sub-document to be a valid XML document so in-order to include a *non-XML document* we need to provide an additional attribute `parse=text` along with `href`.
+> **Note:** The **XInclude** expects the sub-document to be a valid XML document so in-order to include a _non-XML document_ we need to provide an additional attribute `parse=text` along with `href`.
 
 Hence now, our payload becomes,
 
@@ -405,3 +405,24 @@ Hence now, our payload becomes,
 ```
 
 Replace any value on a body with the payload. Make sure the value you are replacing will be reflected in the response to that request.
+
+## XXE Injection using SVG File Upload
+
+Most of the website provide you with the ability to upload images in form of _profile picture_, _avatar_ or inside posts.
+Most of them would be in the form of `.jpg` or '.png' but, some of the image processing libraries support **SVG** file.
+
+> _Scalable Vector Graphics (SVG) is an Extensible Markup Language (XML)-based vector image format for two-dimensional graphics with support for interactivity and animation. The SVG specification is an open standard developed by the World Wide Web Consortium (W3C) since 1999._\Source: Wikipedia
+
+It is possible to get sensitive data using SVG files.
+
+```xml
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE test [ <!ENTITY xxe SYSTEM "file:///etc/hostname" > ]>
+<svg width="128px" height="128px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+  <text font-size="16" x="0" y="16">&xxe;</text>
+</svg>
+```
+
+The above SVG file defines a **DTD** with XML external entity `xxe` that has contents from `/etc/hostname`. Now, inside `svg` we define a `text` tag that will contain the contents of `xxe` in our case contents of `/etc/hostname`.
+
+We need to save the file with `.svg` extension and upload in the vulnerable webserver. If, you can see the SVG image that gets uploaded then, you will realize that the SVG is filled with the contents of file `/etc/hostname`.
