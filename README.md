@@ -4,6 +4,27 @@
 
 XEE Injection arises because of the potential dangerous features that XML parser provides. The features though not needed, might be enabled in the web application, which results in the injection to become successful.
 
+## Table Of Contents
+
+- [XXE Injection](#xxe-injection)
+  - [Table Of Contents](#table-of-contents)
+  - [XML Introduction](#xml-introduction)
+    - [DTD](#dtd)
+    - [External DTD](#external-dtd)
+    - [XML Custom Entities](#xml-custom-entities)
+  - [Exploiting XXE Injection](#exploiting-xxe-injection)
+    - [Reading Arbitrary files using XXE Injection](#reading-arbitrary-files-using-xxe-injection)
+    - [Performing SSRF using XXE Injection](#performing-ssrf-using-xxe-injection)
+      - [Impact](#impact)
+  - [Blind XXE Injection](#blind-xxe-injection)
+    - [Finding Blind XXE Injection using Out-Of-Band techniques](#finding-blind-xxe-injection-using-out-of-band-techniques)
+    - [Using XML Parameter Entity for exploiting using Out-Of-Band](#using-xml-parameter-entity-for-exploiting-using-out-of-band)
+    - [Exfiltrate sensitive data using Blind XXE Injection](#exfiltrate-sensitive-data-using-blind-xxe-injection)
+    - [Exfiltrate data using Blind XXE Injection through error messages](#exfiltrate-data-using-blind-xxe-injection-through-error-messages)
+    - [Exfiltrate sensitive data by modifying an existing entity of external DTD](#exfiltrate-sensitive-data-by-modifying-an-existing-entity-of-external-dtd)
+  - [XXE Injection with XInclude](#xxe-injection-with-xinclude)
+  - [XXE Injection using SVG File Upload](#xxe-injection-using-svg-file-upload)
+
 ## XML Introduction
 
 XML or _Extensible Markup Language_ is a type of markup language that provides a set of rules for encoding a document that can be read by both humans and machines. The main aspect of XML is to provide ability for inter-communication between machines.
