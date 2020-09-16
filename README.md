@@ -411,7 +411,8 @@ Replace any value on a body with the payload. Make sure the value you are replac
 Most of the website provide you with the ability to upload images in form of _profile picture_, _avatar_ or inside posts.
 Most of them would be in the form of `.jpg` or '.png' but, some of the image processing libraries support **SVG** file.
 
-> _Scalable Vector Graphics (SVG) is an Extensible Markup Language (XML)-based vector image format for two-dimensional graphics with support for interactivity and animation. The SVG specification is an open standard developed by the World Wide Web Consortium (W3C) since 1999._\Source: Wikipedia
+> _Scalable Vector Graphics (SVG) is an Extensible Markup Language (XML)-based vector image format for two-dimensional graphics with support for interactivity and animation. The SVG specification is an open standard developed by the World Wide Web Consortium (W3C) since 1999._ \
+> **Source:** Wikipedia
 
 It is possible to get sensitive data using SVG files.
 
